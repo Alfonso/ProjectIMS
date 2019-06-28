@@ -68,15 +68,16 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     # Check arguments are correct
-    if len(sys.argv) != 3:
-        print('Please input the correct number of arguments')
-        exit()
+    #if len(sys.argv) != 3:
+    #    print('Please input the correct number of arguments')
+    #    exit()
 
     # Check IP
-    ip = str(sys.argv[1])
-
+    #ip = str(sys.argv[1])
+    ip = input('Please input the ip you wish to connect: ')
     # Check Port
-    port = int(sys.argv[2])
+    #port = int(sys.argv[2])
+    port = int(input('Please input the port you wish to connect: '))
 
     # Create socket
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

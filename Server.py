@@ -9,6 +9,8 @@ from os import system, name as machineName
 clientList = []
 roomList = []
 shutDown = False
+ip = ''
+port = 0
 
 #                   CLASS
 class clientInfo:
@@ -29,7 +31,7 @@ def clear():
 # Breaks the accept() in the main while loop because windows
 def breakAccept():
     localSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    localSock.connect((str(sys.argv[1]),int(sys.argv[2])))
+    localSock.connect((ip,port))
     localSock.close()
 
 # Send message to all users
@@ -48,7 +50,9 @@ def sendRoom(sender,message):
 
 # Check if a name already exists
 def checkName(name):
-    if name.lower() == 'server':
+    # We do not want users to have these names. Having SWITCH can cause issues while any form of server can be confusing
+    # Since that is the tag that we have for the server talking to all users
+    if name.lower() == 'server' or name == 'SWITCH':
         return -1
     for client in clientList:
         if client.name == name:
@@ -154,6 +158,8 @@ def commandLine():
                         tempClient.sock.send('KICKED'.encode())
                         break
             else: print('\'{}\' User not found'.format(command[5:]))
+        elif command == 'ip' or command == 'port':
+            print('Your ip for clients to connect is: {} and the port is: {}'.format(ip,port))
 
 # Thread that handles name and room
 def acceptor(uSock,uIP):
@@ -189,13 +195,13 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     # Check arguments are correct
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         print('Please input the correct number of arguments')
         exit()
 
-    ip = str(sys.argv[1])
-    port = int(sys.argv[2])
-
+    ip = str(socket.gethostbyname(socket.gethostname()))
+    port = int(sys.argv[1])
+    print('Your ip for clients to connect is: {}'.format(ip))
     # Setup server socket
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
