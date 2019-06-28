@@ -5,12 +5,20 @@ import socket
 import signal
 import select
 import time
+from os import system, name
 
 #                   GLOBALS
 shutDown = False
-name = ''
+username = ''
+chatRoom = ''
 
 #                   FUNCTIONS
+# Clears screen
+def clear():
+    if name == 'nt':
+        _ = system('cls')
+    else: _ = system('clear')
+
 def receive(sock,ip):
     while True:
         #sock.recv(1024)
@@ -26,9 +34,12 @@ def send(sock,ip):
     time.sleep(1)
     while True:
         message = input('')
-        if message == '!QUIT' or message == '!SHUTDOWN':
+        if message == '!QUIT':
             sock.send(message.encode())
             break
+        elif message == '!clear':
+            clear()
+            print('You are currently in: {}'.format(chatRoom))
         else: sock.send(message.encode())
 
 # Signal Handler to handle Ctr-C
@@ -58,14 +69,23 @@ if __name__ == '__main__':
     client.connect((ip,port))
 
     # Ask for username and see if valid
-    name = input('Please input a username: ')
-    client.send(name.encode())
+    username = input('Please input a username: ')
+    client.send(username .encode())
     if client.recv(4096).decode() == 'Please pick another name':
         print('Please pick another name')
         exit()
-    else: print('Valid name!')
 
+    clear()
     # Do chatroom stuff here
+    print(client.recv(4096).decode())
+    chatRoom = input('Please input a chat room you would like to join: ')
+    client.send(chatRoom.encode())
+    if client.recv(4096).decode() == 'Please pick a valid room':
+        print('Please pick a valid room')
+        exit()
+    else: print('Connecting to room!')
+    clear()
+    print('Connected to {}!: '.format(chatRoom))
 
     receiveThread = threading.Thread(target=receive,args=(client,ip))
     sendingThread = threading.Thread(target=send,args=(client,ip))
