@@ -131,7 +131,31 @@ def commandLine():
             print('')
         elif command == 'clear':
             clear()
+        elif command == 'rooms':
+            print('Current rooms are: {}'.format(roomList))
 
+# Thread that handles name and room
+def acceptor(uSock,uIP):
+    tempName = uSock.recv(4096).decode()
+
+    if checkName(tempName) == -1:
+        uSock.send('Please pick another name'.encode())
+        print('{} disconnected since \'{}\' is already in use'.format(uIP,tempName))
+    else:
+        uSock.send('Valid name.\nAvailable rooms: '.encode())
+
+        # handle chatroom joining?
+        uSock.send('Current rooms: \n{}'.format(', '.join(roomList)).encode())
+        tempRoom = uSock.recv(4096).decode()
+        if checkRoom(tempRoom) == -1:
+            uSock.send('Please pick a valid room'.encode())
+            print('{} disconnected since \'{}\' is not a room'.format(uIP,tempRoom))
+        else:
+            tempInfo = clientInfo(tempName,uIP,uSock,tempRoom,False)
+            clientList.append(tempInfo)
+            thread = threading.Thread(target=client,args=(uSock,uIP,tempInfo))
+            thread.start()
+            print('Connection: {} established as {} in {}'.format(uIP,tempName,tempRoom))
 
 #                   MAIN
 if __name__ == '__main__':
@@ -174,32 +198,10 @@ if __name__ == '__main__':
             break
         print('New Connection: {}'.format(uIP))
 
-        tempName = uSock.recv(4096).decode()
-
-        if checkName(tempName) == -1:
-            uSock.send('Please pick another name'.encode())
-            print('{} disconnected since \'{}\' is already in use'.format(uIP,tempName))
-        else:
-            uSock.send('Valid name.\nAvailable rooms: '.encode())
-
-            # handle chatroom joining?
-            rooms = ''
-            for room in roomList:
-                if rooms == '':
-                    rooms+='Current rooms:\n{}'.format(room)
-                else: rooms+='\n{}'.format(room)
-            uSock.send(rooms.encode())
-            tempRoom = uSock.recv(4096).decode()
-            if checkRoom(tempRoom) == -1:
-                uSock.send('Please pick a valid room'.encode())
-                print('{} disconnected since \'{}\' is not a room'.format(uIP,tempRoom))
-            else:
-                tempInfo = clientInfo(tempName,uIP,uSock,tempRoom,False)
-                clientList.append(tempInfo)
-                thread = threading.Thread(target=client,args=(uSock,uIP,tempInfo))
-                thread.start()
-                print('Connection: {} established as {} in {}'.format(uIP,tempName,tempRoom))
-
+        # Spawn acceptor thread that handles name and room
+        acceptorThread = threading.Thread(target=acceptor,args=(uSock,uIP))
+        acceptorThread.daemon = True
+        acceptorThread.start()
 
     server.close()
     exit()
