@@ -20,6 +20,7 @@ def clear():
     else: _ = system('clear')
 
 def receive(sock,ip):
+    global chatRoom
     while True:
         #sock.recv(1024)
         message  = sock.recv(4096).decode()
@@ -27,6 +28,14 @@ def receive(sock,ip):
             break
         elif message == 'SHUTDOWN':
             print('')
+            break
+        elif message.startswith('SWITCH'):
+            chatRoom = message[7:]
+            clear()
+            print('Switched chatrooms to: {}'.format(chatRoom))
+        elif message == 'KICKED':
+            sock.send('!KICKED'.encode())
+            print('You have been kicked!')
             break
         else: print(message)
 
@@ -37,9 +46,14 @@ def send(sock,ip):
         if message == '!QUIT':
             sock.send(message.encode())
             break
-        elif message == '!clear':
+        elif message == '!CLEAR':
             clear()
             print('You are currently in: {}'.format(chatRoom))
+        elif message == '!HELP':
+            # print out the different commands that can be used
+            print('Help is on the way!')
+        elif message == '!KICKED':
+            print('This is not a command')
         else: sock.send(message.encode())
 
 # Signal Handler to handle Ctr-C
@@ -69,7 +83,11 @@ if __name__ == '__main__':
     client.connect((ip,port))
 
     # Ask for username and see if valid
-    username = input('Please input a username: ')
+    while True:
+        username = input('Please input a username: ')
+        if username != '':
+            break
+
     client.send(username .encode())
     if client.recv(4096).decode() == 'Please pick another name':
         print('Please pick another name')

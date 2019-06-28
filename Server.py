@@ -88,6 +88,17 @@ def client(sock, ip,info):
                 breakAccept()
                 break
             else: sock.send('You do not have appropriate permissions'.encode())
+        elif message == '!ROOMS':
+            sock.send('Current rooms are: {}'.format(roomList).encode())
+        elif message.startswith('!SWITCH'):
+            if checkRoom(message[8:]) == -1:
+                sock.send('That room does not exist'.encode())
+            else:
+                info.chatRoom = message[8:]
+                sock.send(message[1:].encode())
+        elif message == '!KICKED':
+            print('{} \'{}\' has been kicked'.format(ip,info.name))
+            break
         else:
             # Do something with this message
             #print('Message from {}: {}'.format(ip,message))
@@ -114,6 +125,8 @@ def commandLine():
             terminateAll()
             breakAccept()
             break
+        elif command == 'help':
+            print('this will say the commands and shit')
         elif command.startswith('say'):
             sendAll(None,command[4:])
         elif command.startswith('add'):
@@ -133,6 +146,14 @@ def commandLine():
             clear()
         elif command == 'rooms':
             print('Current rooms are: {}'.format(roomList))
+        elif command.startswith('kick'):
+            if checkName(command[5:]) == -1:
+                for tempClient in clientList:
+                    if tempClient.name == command[5:]:
+                        clientList.remove(tempClient)
+                        tempClient.sock.send('KICKED'.encode())
+                        break
+            else: print('\'{}\' User not found'.format(command[5:]))
 
 # Thread that handles name and room
 def acceptor(uSock,uIP):
