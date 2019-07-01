@@ -5,6 +5,7 @@ import socket
 import signal
 import select
 import time
+from sty import fg, rs
 from os import system, name
 
 #                   GLOBALS
@@ -37,7 +38,11 @@ def receive(sock,ip):
             sock.send('!KICKED'.encode())
             print('You have been kicked!')
             break
-        else: print(message)
+        else:
+            if message[:message.find(':')].lower() == 'server':
+                tempName = fg.red + message[:message.find(':')] + fg.rs
+            else: tempName = fg.cyan + message[:message.find(':')] + fg.rs
+            print(tempName + message[message.find(':'):])
 
 def send(sock,ip):
     time.sleep(1)

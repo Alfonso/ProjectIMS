@@ -183,6 +183,7 @@ def acceptor(uSock,uIP):
             thread = threading.Thread(target=client,args=(uSock,uIP,tempInfo))
             thread.start()
             print('Connection: {} established as {} in {}'.format(uIP,tempName,tempRoom))
+            sendRoom(clientInfo('SERVER',None,None,tempRoom,False),'{} has joined the room'.format(tempName))
 
 #                   MAIN
 if __name__ == '__main__':
@@ -195,12 +196,13 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     # Check arguments are correct
-    if len(sys.argv) != 2:
-        print('Please input the correct number of arguments')
-        exit()
+    #if len(sys.argv) != 2:
+        #print('Please input the correct number of arguments')
+        #exit()
 
     ip = str(socket.gethostbyname(socket.gethostname()))
-    port = int(sys.argv[1])
+    #port = int(sys.argv[1])
+    port = int(input('Please input the port you would like to use: '))
     print('Your ip for clients to connect is: {}'.format(ip))
     # Setup server socket
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
